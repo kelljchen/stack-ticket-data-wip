@@ -1,0 +1,124 @@
+---
+title: "Stack Parking Tickets"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+setwd("C:/Users/Kelly Chen/Documents/The Stack UCLA Parking Tickets")
+parkingtix <- read.csv("uclaParkingTicket2015_2019.csv")
+
+```
+
+Tickets Distributed by Month/Year
+```{r}
+#Month of ticket issue
+monthfreq <- table(as.integer(format(as.Date(parkingtix$Issue.Date, "%m/%d/%Y"),"%m/%Y")))
+
+monthfreq
+```
+
+Determining Average Fine Amount by Violation Code
+```{r}
+
+#summarize average fine by the violation code
+#88.13B+ , 80.69BS , 80.69C , 5204A- , 80.56E4+, 5200 , 80.58L ,88.03A ,80.56E1 , 22500F , 22502A
+
+topcode <- c("88.13B+","80.69BS","80.69C","5204A-", "80.56E4+","5200","80.58L","88.03A","80.56E1","22500F","22502A")
+
+mean(parkingtix[which(parkingtix$Violation.code=="88.13B+"),"Fine.amount"])
+
+#organizes the average fine by the violation code type
+finecode <- data.frame(topcode,double(11))
+
+for(i in 1:length(topcode)){
+    finecode[i,2] <- mean(parkingtix[which(parkingtix$Violation.code==topcode[i]),"Fine.amount"])
+}
+
+colnames(finecode) = c("Violation.Code","Mean.Fine")
+
+mean(finecode$Mean.Fine)
+
+```
+
+Transforming Coordinates into GPS Coordinates
+```{r}
+
+#kind of necessary; switching these around bc they are mislabeled
+parkingtix <- parkingtix %>% rename(Latitude = Longitude, Longitude = Latitude)
+
+library("sp")
+library("rgdal")
+library("raster")
+
+#ERIS:102645 
+# +proj=lcc +lat_1=34.03333333333333 +lat_2=35.46666666666667 +lat_0=33.5 +lon_0=-118 +x_0=2000000 +y_0=500000.0000000002 +datum=NAD83 +units=us-ft +no_defs
+
+#isolating coordinates of the parking tickets
+Latitude <- parkingtix$Latitude
+Longitude <- parkingtix$Longitude
+location <- cbind(Longitude, Latitude)
+#dfpts <- data.frame(Latitude=parkingtix$Latitude,Longitude=parkingtix$Longitude)
+
+#turning it into a SpatialPoints object and assigning appropriate CRS
+crdref <- CRS('+proj=lcc +lat_1=34.03333333333333 +lat_2=35.46666666666667 +lat_0=33.5 +lon_0=-118 +x_0=2000000 +y_0=500000.0000000002 +datum=NAD83 +units=us-ft +no_defs')
+pts <- SpatialPoints(location,proj4string=crdref)
+
+#transforming into GPS coordinates
+newcrs <- CRS("+proj=longlat +datum=WGS84 +no_defs")
+gpspts <- spTransform(pts, newcrs)
+
+#back into a dataframe
+gpspts <- as.data.frame(gpspts)
+
+```
+
+Combining Coordinates With the Day of Week Ticket was given
+```{r}
+
+jptix <- read.csv("uclaTickv2.csv")
+
+#parkingtix <- subset(parkingtix, select = -c("Issue.Date"))
+
+#ptix3 <- parkingtix %>% inner_join(jptix, by="X")
+
+gpspts <- cbind("X"=parkingtix$X,gpspts)
+
+jptix <- within(jptix,rm("Latitude","Longitude"))
+
+uclaTickV3 <- jptix %>% inner_join(gpspts, by="X")
+
+write.csv(uclaTickV3,'uclaTickV3.csv')
+
+```
+
+
+Frequency of Tickets by Week
+```{r}
+#Obtain frequency of tickets by end of week vs. other days of week
+
+#Don't need this anymore that's lit
+
+```
+
+Frequency of Ticket by Time of Day
+```{r}
+library(chron)
+
+#eliminates all ticket data that is missing distribution time
+ptix2 <- parkingtix[complete.cases(parkingtix$Issue.time),]
+
+hours <- (ptix2$Issue.time)%/%100
+
+table(hours)
+#times <- times(sub("(.{2})", "\\1:", sprintf("%04d:00", ptix1$Issue.time)))
+
+#attr(times, c("format", "class")) <- NULL
+
+#as.POSIXct(times,format="%H")
+
+```
