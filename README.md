@@ -1,4 +1,4 @@
-# stack-ticket-data-wip
+# Stick It to the Ticket
 
 This repo contains the code used to analyze data for the article [Stick It to the Ticket](https://stack.dailybruin.com/2020/01/18/ticket-data/), published on The Stack at the Daily Bruin during the fall of 2019, when I began as a Data Journalist intern. In this article, I worked with three other students to generate the analysis and data visualizations for the article.
 
@@ -12,9 +12,16 @@ Parking is notoriously difficult in around the UCLA and Westwood area. Many stud
 * Researching to contextualize reasons for spikes in parking citations
 * Generating a JavaScript map and plotly graph visuals for website use.
 
-### My Code Contributions
-Used libraries: dplyr, sp, rgdal, raster, chron
+### My Contributions
 * Generating breakdowns of ticket citations by month, violation codes, time of day
 * Transforming coordinates into GPS plottable latitudinal and longitudinal data using [California specific spatial reference coordinates equation](https://epsg.io/102645)
 
 Outside of my code contributions, I helped with drafting the article and learned how to generate plotly graphics from senior data journalist members of The Stack.
+
+## Files in Repo
+"Parking Ticket Exploration.Rmd"
+* Used libraries: dplyr, sp, rgdal, raster, chron
+* Contains exploratory analysis for data
+
+"uclaParkingTicket2015_2019"
+* Data Source: https://data.lacity.org/A-Well-Run-City/Parking-Citations/wjz9-h9np
